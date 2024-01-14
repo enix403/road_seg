@@ -41,7 +41,7 @@ class RoadSegmentationModel(nn.Module):
         dropout=0.1,
         do_batch_norm=True,
     ):
-        super(UNet, self).__init__()
+        super().__init__()
 
         self.enc1 = Conv2dBlock(
             in_channels, num_filters * 1, do_batch_norm=do_batch_norm
