@@ -25,8 +25,8 @@ def load_single(image_path: str, mask_path: str):
     # (3, 256, 256)
     mask = preprocess(mask)
 
-    # (256, 256) (uint8)
-    mask = torch.gt(mask[0], 0.5).type(torch.uint8)
+    # (1, 256, 256)
+    mask = mask[:1]
 
     return img, mask
 
@@ -35,6 +35,7 @@ def load_all():
 
     # indices = torch.randperm(6226)[:512]
     # torch.save([X_all[indices], Y_all[indices]], "data/small.pt")
+    # torch.save([X_all, Y_all], "data/small.pt")
 
     X_all, Y_all = torch.load('data/small.pt', weights_only=True)
     return X_all, Y_all
