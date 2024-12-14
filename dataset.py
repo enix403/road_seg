@@ -1,38 +1,58 @@
+from pathlib import Path
+
+import torch
+import pandas as pd
 from PIL import Image
+from tqdm import tqdm 
+from torchvision.transforms import v2
 
-_image_path = "train/100034_sat.jpg"
-_mask_path = "train/100034_mask.png"
-
-def load_single(image_path: str, mask_path: str):
-    pass
-
-
+ROOT_DIR = Path("data/globe-data")
 
 preprocess = v2.Compose([
     v2.ToImage(),
     v2.ToDtype(torch.float32, scale=True),
-    v2.CenterCrop(227),
+    # v2.CenterCrop(256),
     v2.Resize((256, 256))
 ])
 
+def load_single(image_path: str, mask_path: str):
+    img = Image.open(image_path)
+    mask = Image.open(mask_path)
 
-def show_pair(img, mask, p=False):
-    if p:
-        img = preprocess(img)
-        mask = preprocess(mask)
+    # (3, 256, 256)
+    img = preprocess(img)
 
-        img = v2.functional.to_pil_image(img)
-        mask = v2.functional.to_pil_image(mask)
+    # (3, 256, 256)
+    mask = preprocess(mask)
 
-        # isinstance(torch.randn(1,2), Image.Image)
+    # (256, 256) (uint8)
+    mask = torch.gt(mask[0], 0.5).type(torch.uint8)
 
-    plt.figure(figsize=(10, 5))
-
-    plt.subplot(1, 2, 1)
-    plt.imshow(img)
-
-    plt.subplot(1, 2, 2)
-    plt.imshow(mask)
+    return img, mask
 
 
+def load_all():
+    data = torch.load('data/quick.pt')
+    X_all = data['X_all']
+    Y_all = data['Y_all']
 
+    return X_all, Y_all
+
+    metadata = pd.read_csv(ROOT_DIR / "metadata.csv")
+    metadata = metadata[metadata["split"] == "train"]
+
+    all_images = []
+    all_masks = [] 
+
+    for image_path, mask_path in tqdm(zip(metadata['sat_image_path'], metadata['mask_path'])):
+        img, mask = load_single(image_path, mask_path)
+        all_images.append(img)
+        all_masks.append(mask)
+
+
+    X_all = torch.stack(all_images, dim=0)
+    Y_all = torch.stack(all_masks, dim=0)
+
+    torch.save({ 'X_all': X_all, 'Y_all': Y_all }, 'data/quick.pt')
+
+    return X_all, Y_all
