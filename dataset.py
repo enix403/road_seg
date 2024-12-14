@@ -32,11 +32,22 @@ def load_single(image_path: str, mask_path: str):
 
 
 def load_all():
-    data = torch.load('data/quick.pt')
+
+    # indices = torch.randperm(6226)[:512]
+    # torch.save([X_all[indices], Y_all[indices]], "data/small.pt")
+
+    X_all, Y_all = torch.load('data/small.pt', weights_only=True)
+    return X_all, Y_all
+
+    # --------------------
+
+    data = torch.load('data/quick.pt', weights_only=True)
     X_all = data['X_all']
     Y_all = data['Y_all']
 
     return X_all, Y_all
+
+    # --------------------
 
     metadata = pd.read_csv(ROOT_DIR / "metadata.csv")
     metadata = metadata[metadata["split"] == "train"]
